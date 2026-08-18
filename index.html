@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LittleMindsUniverse ðŸŒŸ</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XC7Z7HKEKL"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XC7Z7HKEKL');
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(180deg,#e0f2fe 0%,#fef3c7 100%);color:#1e293b;min-height:100vh}
@@ -757,5 +765,19 @@ window.onload=function(){ Navbar.render(); App.showPage("home"); console.log("âœ
 </script>
 <script src="content-drop2.js"></script>
 <script src="content-drop3.js"></script>
+<script>
+  /* ---- GA4 single-page-app screen tracking for LMU ---- */
+  (function() {
+    if (typeof App !== "undefined" && App.showPage) {
+      var orig = App.showPage;
+      App.showPage = function(page) {
+        orig.call(App, page);
+        if (typeof gtag === "function") {
+          gtag("event", "page_view", { page_path: "/" + page, page_title: "LMU " + page });
+        }
+      };
+    }
+  })();
+</script>
 </body>
 </html>
