@@ -478,7 +478,6 @@ var Navbar = {
 function navigate(page){ App.showPage(page); }
 function openMilo(){ document.getElementById("milo-modal").classList.remove("hidden"); }
 function closeMilo(){ document.getElementById("milo-modal").classList.add("hidden"); if(synth){ synth.cancel(); } }
-function sendToMilo(){
 /* ============ 🤖 REAL AI MILO (Gemini API) ============ */
 var AI_CONFIG = {
   key: "PASTE_YOUR_GEMINI_KEY_HERE",   ✅ safe,
@@ -526,12 +525,13 @@ function sendToMilo(){
     box.scrollTop = box.scrollHeight;
     speak(reply);
   }
-  if(AI_CONFIG.enabled && AI_CONFIG.key.indexOf("PASTE_") !== 0){
+  if(AI_CONFIG.enabled && AI_CONFIG.key && AI_CONFIG.key.length > 20){
     askRealMilo(message).then(show).catch(function(){ show(MiloService.respond(message)); });
   } else {
     setTimeout(function(){ show(MiloService.respond(message)); }, 400);
   }
-} handleLogin(){ var r=AuthService.login(document.getElementById("login-email").value, document.getElementById("login-password").value); alert(r.message); if(r.success){ Navbar.render(); App.showPage("dashboard"); } }
+}
+function handleLogin(){ var r=AuthService.login(document.getElementById("login-email").value, document.getElementById("login-password").value); alert(r.message); if(r.success){ Navbar.render(); App.showPage("dashboard"); } }
 function handleRegister(){
   var name=document.getElementById("reg-name").value, email=document.getElementById("reg-email").value, password=document.getElementById("reg-password").value, role=document.getElementById("reg-role").value;
   if(!name||!email||!password){ alert("Please fill in all fields! 📝"); return; }
