@@ -479,12 +479,59 @@ function navigate(page){ App.showPage(page); }
 function openMilo(){ document.getElementById("milo-modal").classList.remove("hidden"); }
 function closeMilo(){ document.getElementById("milo-modal").classList.add("hidden"); if(synth){ synth.cancel(); } }
 function sendToMilo(){
-  var input=document.getElementById("milo-input"); var message=input.value.trim(); if(!message) return;
-  var box=document.getElementById("milo-messages");
-  box.innerHTML+='<div class="msg user-msg">'+message+'</div>'; input.value=""; box.scrollTop=box.scrollHeight;
-  setTimeout(function(){ var reply=MiloService.respond(message); box.innerHTML+='<div class="msg milo-msg">'+reply+'</div>'; box.scrollTop=box.scrollHeight; speak(reply); },400);
+/* ============ 🤖 REAL AI MILO (Gemini API) ============ */
+var AI_CONFIG = {
+  key: "PASTE_YOUR_GEMINI_KEY_HERE",   ✅ safe,
+  model: "gemini-2.5-flash",
+  enabled: true
+};
+var MILO_SYSTEM_PROMPT = "You are Milo, a friendly owl AI learning companion for children aged 2-12 on LittleMindsUniverse, a South African CAPS-aligned learning platform. Always be kind, encouraging, safe and age-appropriate. Give short, simple, fun explanations. Never share harmful, scary or adult content. Encourage curiosity and celebrate effort. Use a few emojis. If asked about something unsafe, gently redirect to a learning topic and suggest asking a trusted adult.";
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function askRealMilo(message){
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/" + AI_CONFIG.model + ":generateContent?key=" + AI_CONFIG.key;
+  return fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: MILO_SYSTEM_PROMPT }] },
+      contents: [{ parts: [{ text: message }] }],
+      generationConfig: { maxOutputTokens: 200 }
+    })
+  }).then(function(r){
+    if(!r.ok){ throw new Error("API " + r.status); }
+    return r.json();
+  }).then(function(data){
+    var t = "";
+    try { t = data.candidates[0].content.parts[0].text; } catch(e){ t = ""; }
+    if(!t){ throw new Error("empty"); }
+    return t;
+  });
 }
-function handleLogin(){ var r=AuthService.login(document.getElementById("login-email").value, document.getElementById("login-password").value); alert(r.message); if(r.success){ Navbar.render(); App.showPage("dashboard"); } }
+function sendToMilo(){
+  var input = document.getElementById("milo-input");
+  var message = input.value.trim();
+  if(!message) return;
+  var box = document.getElementById("milo-messages");
+  box.innerHTML += '<div class="msg user-msg">' + esc(message) + '</div>';
+  input.value = "";
+  box.scrollTop = box.scrollHeight;
+  var th = document.createElement("div");
+  th.className = "msg milo-msg";
+  th.innerHTML = "🦉 Milo is thinking...";
+  box.appendChild(th);
+  box.scrollTop = box.scrollHeight;
+  function show(reply){
+    if(th.parentNode){ th.parentNode.removeChild(th); }
+    box.innerHTML += '<div class="msg milo-msg">' + esc(reply) + '</div>';
+    box.scrollTop = box.scrollHeight;
+    speak(reply);
+  }
+  if(AI_CONFIG.enabled && AI_CONFIG.key.indexOf("PASTE_") !== 0){
+    askRealMilo(message).then(show).catch(function(){ show(MiloService.respond(message)); });
+  } else {
+    setTimeout(function(){ show(MiloService.respond(message)); }, 400);
+  }
+} handleLogin(){ var r=AuthService.login(document.getElementById("login-email").value, document.getElementById("login-password").value); alert(r.message); if(r.success){ Navbar.render(); App.showPage("dashboard"); } }
 function handleRegister(){
   var name=document.getElementById("reg-name").value, email=document.getElementById("reg-email").value, password=document.getElementById("reg-password").value, role=document.getElementById("reg-role").value;
   if(!name||!email||!password){ alert("Please fill in all fields! 📝"); return; }
